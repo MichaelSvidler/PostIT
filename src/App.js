@@ -6,7 +6,6 @@ function App() {
 
   return (
     <div className={classes.backgroundImage} >
-
         <Login/>
     </div>
   );

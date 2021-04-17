@@ -33,8 +33,8 @@ const useStyles = makeStyles(() => ({
         marginBottom: 12,
     },
     field:{
-        backgroundColor: 'rgba(255,255,255,0.8)',
-       marginTop: '1vh',
+      backgroundColor: 'rgba(255,255,255,0.8)',
+       marginTop: '1vh!important',
        width: '20vw'
     },
     button: {

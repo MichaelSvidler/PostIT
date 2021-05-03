@@ -1,84 +1,67 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import Post from './Post/Post';
 import {useSelector} from 'react-redux';
-import TouchCarousel, {touchWithMouseHOC, NonPassiveTouchTarget, clamp} from 'react-touch-carousel';
-
-const listOfData = [
-    {
-      title: 'Card 1',
-      background: '#0072bb',
-      text: `react-touch-carousel only handles the trouble parts, i.e.
-      - touch gestures parsing
-      - scroll cursor rounding and modding
-      - items padding and looping
-      - auto playing`
-    },
-    {
-      title: 'Card 2',
-      background: '#ff4c3b',
-      text: `It is left up to you to
-      - decide the carousel structure
-      - render each item in the carousel
-      - style everything
-      - add some fancy decorators like dots`
-    },
-    {
-      title: 'Card 3',
-      background: '#ffca18',
-      text: `Install it by
-      - npm install --save react-touch-carousel`
-    },
-    {
-      title: 'Card 4',
-      background: '#44c1c1',
-      text: `See some example code in the '/examples' dir at GitHub. And you can run and play with the code after cloning it, by
-      - npm install
-      - npm run dev
-      - open localhost:5000`
-    },
-    {
-      title: 'Card 5',
-      background: '#29c53c',
-      text: 'react-touch-carousel is released under MIT license'
-    }
-  ];
+import axios from 'axios';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
+import IconButton from '@material-ui/core/IconButton';
+import useStyles from './Post/PostStyles';
+import {useHistory} from 'react-router-dom';
 
 const PostPage = () => {
 
     const user = useSelector(state=> state.user);
-    function CarouselContainer (props) {
-        // render the carousel structure
-        return <div style={{width: '100px', height:'50px', backgroundColor: 'red'}}></div>
-      }
-      
-      function renderCard (index, modIndex, cursor) {
-        const item = listOfData[modIndex]
-        // render the item
-        return (
-            <h1>item.text</h1>
-        )
-      }
-      
+    const history = useHistory();
+     
+    const PostsLoading = () =>{
+        axios.get(`http://localhost:8080/PostManager/PostByUserId/${user.id}`).then(res => {
+            console.log(res.data);
+            editPosts(res.data)
+          }).catch(error => {
+              console.log(error)
+          })
+    }
 
-    
+    useEffect(()=> {
+        PostsLoading()
+    }, [])
+
+    const [Posts, editPosts] = useState([]);
+    const classes = useStyles();
+
+    const deleteItem = (event, key) => {
+        event.stopPropagation();
+        axios.delete(`http://localhost:8080/PostManager/PostById/${key}`).then(res => {
+            console.log(res.data);
+            editPosts(Posts.filter(post=> post.id != key))
+          }).catch(error => {
+              console.log(error)
+          })
+    }
+
+    const onPostClick= (postId) => {
+         history.push({
+            pathname: '/PostEditor',
+            state: { postId: postId }
+          })
+    }
+
     return(
-        <div>
-           {/* { user.id !== -1 ? 
+        <>
+           { user.id !== -1 ? 
            <div>
-            <Post/>
-            <Post/>
-            <Post/>
+               <div className = {classes.centerItems}> 
+               <IconButton onClick = {()=>  history.push('/PostEditor')}><AddCircleIcon style={{ color: 'red', fontSize: 70}}/></IconButton>
+               </div>
+                <div style={{overflow: 'auto', height: '80vh'}}>
+                {Posts && Posts.map(post => {
+                    return(
+                        <Post post={post} key={post.id} onDelete ={deleteItem} onPostClick={onPostClick}/>
+                    )
+                })}
+                </div>
             </div>:
-            <div>Not aloud </div> } */}
-            <TouchCarousel
-                component={CarouselContainer}
-                cardCount={listOfData.length}
-                cardSize={450}
-                renderCard={renderCard}
-                loop
-                autoplay={3000}
-/>
-        </div>   
+            <div>Not aloud </div> }
+        </>
     )
 }
 
